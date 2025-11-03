@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# IDEs (مثل VS Code یا PyCharm)
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
