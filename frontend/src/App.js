@@ -9,7 +9,7 @@ import { ColorModeContext, useMode} from "./theme";
 import Topbar from "./scenes/global/Topbar";
 import Dashboard from "./scenes/dashboard";
 
-
+import DarkVeil from "./components/reactbits/DarkVeil/DarkVeil";
 
 
 
@@ -37,6 +37,7 @@ function App() {
           }}
         >
         {/* background component */}
+        <DarkVeil></DarkVeil>
         </Box>
         <div className="app">
           <main className="content">
