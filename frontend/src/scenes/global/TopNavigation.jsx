@@ -12,9 +12,10 @@ const TopNavigation = () => {
 
 
   const tabs = [
-    { title: "Analytics", to: "/" },
+    { title: "Real Time Data", to : "/"},
+    { title: "Analytics", to: "/Analytics" },
     { title: "Alert", to: "/alert" },
-    { title: "Charts", to: "/charts" },
+    // { title: "Charts", to: "/charts" },
   ];
 
   return (

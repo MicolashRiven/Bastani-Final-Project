@@ -7,7 +7,7 @@ REALM = os.getenv("KEYCLOAK_REALM", "myrealm")
 REACT_CLIENT_ID = os.getenv("REACT_CLIENT_ID", "react-client")
 
 #fastapi backend client id (confidential)
-BACKEND_CLIENT_ID = os.getenv("BACKEND_CLIENT_ID", "fastapi-backend")
+BACKEND_CLIENT_ID = os.getenv("BACKEND_CLIENT_ID", "backend-client")
 
 ISSUER = f"{KEYCLOAK_URL}/realms/{REALM}"
 JWKS_URL = f"{ISSUER}/protocol/openid-connect/certs"

@@ -9,6 +9,27 @@ import { CssBaseline } from "@mui/material";
 // import LoadingPage from "./components/common/loadingpage";
 
 function renderApp() {
+
+  fetch("http://127.0.0.1:8000/me", {
+  method: "GET",
+  headers: {
+    "Authorization": `Bearer ${keycloak.token}`,
+    "Content-Type": "application/json"
+  }
+})
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Unauthorized or request failed");
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log("Response data:", data);
+  })
+  .catch(error => {
+    console.error("Error:", error);
+  });
+  
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(
     <React.StrictMode>
