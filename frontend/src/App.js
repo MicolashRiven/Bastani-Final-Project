@@ -1,24 +1,56 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import { Routes , Route } from "react-router-dom";
+import { useKeycloak } from "@react-keycloak/web";
+
+import { CssBaseline, ThemeProvider } from "@mui/material"
+import { Box } from "@mui/material";
+
+import { ColorModeContext, useMode} from "./theme";
+import Topbar from "./scenes/global/Topbar";
+import Dashboard from "./scenes/dashboard";
+
+
+
+
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+  const [theme, colorMode] = useMode();
+  const [isSidebar, setIsSidebar] = useState(true);
+
+  const { keycloak, initialized } = useKeycloak();
+  
+  return (  
+    <Box>
+
+
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box
+          sx={{
+            position: "fixed",
+            width: "100%",
+            height: "100%",
+            top: 0,
+            left: 0,
+            zIndex: -1,
+          }}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+        {/* background component */}
+        </Box>
+        <div className="app">
+          <main className="content">
+            
+            <Topbar setIsSidebar={setIsSidebar} />
+
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+            </Routes>
+          </main>
+        </div> 
+      </ThemeProvider>
+    </ColorModeContext.Provider>
+    </Box>
   );
 }
 
