@@ -10,18 +10,21 @@ router = APIRouter()
 def getrouter():
     return router
 
-@router.get("/test")
+# @router.get("/test")
+# async def testrouter_test(complex: int = Query(None), material: int = Query(None)):
+#     return getrawdataJson(complex, material)
+
+
+# EX-> call like this: http://127.0.0.1:8000/test?complex=1&material=1
+@router.get("/measurement")
 async def testrouter_test(complex: int = Query(None), material: int = Query(None)):
     return getrawdataJson(complex, material)
 
-@router.get("/measurement")
-async def testrouter_measurement():
-    return getrawdataJson()
 
-  
+# EX-> call like this: http://127.0.0.1:8000/sensor?complex=1
 @router.get("/sensor")
-async def testrouter():
-    return getrawsensordataJson () 
+async def testrouter(complex: int = Query(None)):
+    return getrawsensordataJson (complex_id=complex) 
 
 
 
