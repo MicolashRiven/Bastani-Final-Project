@@ -32,6 +32,11 @@ async def testrouter(complex: int = Query(None)):
 async def analyricRouter():
     return calculate_methanol_kpi()
 
+
+@router.get("/alert")
+async def analyricRouter():
+    return calculate_methanol_kpi()
+
 @router.get("/me")
 async def who_am_i(payload: dict = Depends(get_current_user)):
     return {"user": payload.get("preferred_username"), 
