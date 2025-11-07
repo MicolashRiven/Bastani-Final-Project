@@ -23,4 +23,4 @@ app.include_router(getrouter())
 
 @app.get("/")
 async def gethello():
-    return {"message" : "python kos nanat"}
+    return {"message" : "hello world"}
