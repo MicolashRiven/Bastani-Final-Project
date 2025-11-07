@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from core.auth import get_current_user, require_roles
+from service.returnrawdata import getrawdataJson
 
 router = APIRouter()
 
@@ -9,7 +10,8 @@ def getrouter():
 
 @router.get("/test")
 async def testrouter():
-    return [{"": "messi is the top g, goat and love of my life." }]
+    return [{"": getrawdataJson()  }]
+
 
 
 @router.get("/me")
