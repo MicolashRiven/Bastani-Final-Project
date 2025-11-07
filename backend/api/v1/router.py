@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Query, Depends
 
 from core.auth import get_current_user, require_roles
 from service.returnrawdata import getrawdataJson
@@ -9,8 +9,8 @@ def getrouter():
     return router
 
 @router.get("/test")
-async def testrouter():
-    return  getrawdataJson() 
+async def testrouter( complex: int = Query(None), material: int = Query(None)):
+    return  getrawdataJson(complex, material) 
 
 
 

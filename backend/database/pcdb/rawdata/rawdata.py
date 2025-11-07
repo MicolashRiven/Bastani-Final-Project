@@ -4,7 +4,7 @@ from core.dbconfig import getDBconfig
 
 engine = getDBconfig()
 
-def getAllComplexesList():
+def getAllComplexesList(complex_id=None, material_id=None):
     with engine.begin() as conn:
         # conn.execute(text("""
 
@@ -47,7 +47,18 @@ def getAllComplexesList():
         order by m.id;
 
         """
+        conditions = []
+        params = {}
 
-        df = pd.read_sql(text(query), conn)
+        if complex_id is not None:
+            conditions.append("AND c.id = :complex_id")
+            params["complex_id"] = complex_id
+
+        if material_id is not None:
+            conditions.append("AND ma.id = :material_id")
+            params["material_id"] = material_id
+
+        final_query = query + "\n".join(conditions) + "\nORDER BY m.id;"
+        df = pd.read_sql(text(final_query), conn, params=params)
 
     return df

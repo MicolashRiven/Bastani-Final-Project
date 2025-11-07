@@ -2,7 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, IconButton, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { ResponsiveBar } from "@nivo/bar";
 import { tokens } from "../../theme";
+import keycloak from "../../keycloak"
+
 
 const initialData = [
   {
@@ -18,6 +21,7 @@ const initialData = [
     name: "Complex 2",
     materials: [
       { id: "m3", name: "Material 3", details: "Details about Material 3" },
+      { id: "m4", name: "Material 4", details: "Details about Material 4" },
     ],
   },
 ];
@@ -25,13 +29,45 @@ const initialData = [
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [selectedMaterial, setSelectedMaterial] = useState(null);
 
-  // جلوگیری از اسکرول پس‌زمینه وقتی overlay باز است
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // جلوگیری از اسکرول پس‌زمینه هنگام باز بودن جزئیات
   useEffect(() => {
-    if (selectedMaterial) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "auto";
+    document.body.style.overflow = selectedMaterial ? "hidden" : "auto";
   }, [selectedMaterial]);
+
+  // تابع برای گرفتن داده از API
+  const handleMaterialClick = async (material, complex) => {
+    setSelectedMaterial({ ...material, parent: complex });
+    setChartData(null);
+    setLoading(true);
+
+try {
+  const response = await fetch(
+    `http://localhost:5000/api/data?complex=${complex.id}&material=${material.id}`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${keycloak.token}`, 
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+
+    // داده باید این شکل باشه:
+    // [ { label: "Jan", value: 30 }, { label: "Feb", value: 50 } ]
+    setChartData(data);
+  } catch (error) {
+    console.error("Error fetching chart data:", error);
+  } finally {
+    setLoading(false);
+  }
+  };
 
   return (
     <Box
@@ -40,7 +76,7 @@ const Dashboard = () => {
       p={1}
       sx={{
         "& *": { borderRadius: "12px" },
-        bgcolor: "rgba(22, 22, 24, 0.7)",
+        bgcolor: "rgba(22, 22, 24, 0.9)",
       }}
       justifyContent="center"
       alignItems="center"
@@ -52,10 +88,10 @@ const Dashboard = () => {
         justifyContent="center"
         alignItems="center"
         gap={3}
-        width="80%"
+        width="85%"
         height="90vh"
       >
-        {/* حالت عادی - دو complex */}
+        {/* complex in showing detail */}
         {!selectedMaterial && (
           <>
             {initialData.map((complex) => (
@@ -90,7 +126,7 @@ const Dashboard = () => {
                           boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
                         },
                       }}
-                      onClick={() => setSelectedMaterial({ ...m, parent: complex })}
+                      onClick={() => handleMaterialClick(m, complex)}
                     >
                       <Typography variant="h6" color="white">
                         {m.name}
@@ -103,7 +139,7 @@ const Dashboard = () => {
           </>
         )}
 
-        {/* حالت نمایش جزئیات Material */}
+        {/* material in showing detail */}
         {selectedMaterial && (
           <Box
             position="absolute"
@@ -112,21 +148,21 @@ const Dashboard = () => {
             justifyContent="center"
             alignItems="center"
             sx={{
-              bgcolor: "rgba(10, 10, 10, 0.92)",
+              bgcolor: "rgba(10, 10, 10, 0.95)",
               zIndex: 999,
               transition: "opacity 0.3s ease",
             }}
           >
             <Box
               width="80%"
-              maxWidth={800}
+              maxWidth={900}
               bgcolor="rgba(255,255,255,0.05)"
               p={6}
               position="relative"
               textAlign="center"
               boxShadow="0 10px 40px rgba(0,0,0,0.6)"
             >
-              {/* دکمه بستن */}
+              {/* close button*/}
               <IconButton
                 onClick={() => setSelectedMaterial(null)}
                 sx={{ position: "absolute", top: 16, right: 16, color: "white" }}
@@ -146,25 +182,75 @@ const Dashboard = () => {
                 {selectedMaterial.details}
               </Typography>
 
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => alert(`Action for ${selectedMaterial.name}`)}
-              >
-                Do Something
-              </Button>
+              {/* show chart*/}
+              {loading && (
+                <Typography color="gray" mt={3}>
+                  Loading chart data...
+                </Typography>
+              )}
 
-              <Button
-                variant="outlined"
-                sx={{
-                  color: "white",
-                  borderColor: "rgba(255,255,255,0.4)",
-                  ml: 2,
-                }}
-                onClick={() => setSelectedMaterial(null)}
-              >
-                Back
-              </Button>
+              {!loading && chartData && (
+                <Box height="350px" mt={4}>
+                  <ResponsiveBar
+                    data={chartData}
+                    keys={["value"]}
+                    indexBy="label"
+                    margin={{ top: 30, right: 30, bottom: 60, left: 60 }}
+                    padding={0.3}
+                    colors={{ scheme: "nivo" }}
+                    axisBottom={{
+                      tickRotation: -30,
+                      legend: "Category",
+                      legendPosition: "middle",
+                      legendOffset: 40,
+                    }}
+                    axisLeft={{
+                      legend: "Value",
+                      legendPosition: "middle",
+                      legendOffset: -50,
+                    }}
+                    theme={{
+                      textColor: "white",
+                      axis: { ticks: { text: { fill: "white" } } },
+                      legends: { text: { fill: "white" } },
+                    }}
+                    labelSkipWidth={12}
+                    labelSkipHeight={12}
+                    labelTextColor="white"
+                  />
+                </Box>
+              )}
+
+              {!loading && !chartData && (
+                <Typography color="gray" mt={3}>
+                  No data available.
+                </Typography>
+              )}
+
+              {/* دکمه‌ها */}
+              <Box mt={5}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() =>
+                    alert(`Action for ${selectedMaterial.name}`)
+                  }
+                >
+                  Do Something
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  sx={{
+                    color: "white",
+                    borderColor: "rgba(255,255,255,0.4)",
+                    ml: 2,
+                  }}
+                  onClick={() => setSelectedMaterial(null)}
+                >
+                  Back
+                </Button>
+              </Box>
             </Box>
           </Box>
         )}

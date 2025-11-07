@@ -4,8 +4,8 @@ from database.pcdb.rawdata import getAllComplexesList
 
 
 
-def getrawdataJson():
+def getrawdataJson(complex_id=None, material_id=None):
 
-    data = getAllComplexesList().to_json(orient="records")  
+    data = getAllComplexesList(complex_id, material_id).to_json(orient="records")  
 
     return json.loads(data)
