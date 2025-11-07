@@ -10,7 +10,7 @@ def getrouter():
 
 @router.get("/test")
 async def testrouter():
-    return [{"": getrawdataJson()  }]
+    return  getrawdataJson() 
 
 
 
