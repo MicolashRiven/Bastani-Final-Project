@@ -5,17 +5,10 @@ from core.dbconfig import getDBconfig
 engine = getDBconfig()
 
 def getAllComplexesList(complex_id=None, material_id=None):
-    with engine.begin() as conn:
-        # conn.execute(text("""
 
-        #         );
-        # """))
-
-
-        query = """
-
-        SELECT
-        m.id as  measurement_id,
+    final_query = """
+    SELECT
+        m.id as measurement_id,
         m.measurement_date,
         c.id as complex_id,
         c.name as complex_name,
@@ -34,45 +27,39 @@ def getAllComplexesList(complex_id=None, material_id=None):
         mat.name as product_material_name,
         l.id as license_id,
         l.name as license_name,
-
         coalesce(fc.line_number, pc.line_number) as line_number
+    FROM operation.measurement as m
+    LEFT JOIN basic.complex as c ON m.complex_id = c.id
+    LEFT JOIN general.equipment as eq ON m.equipment_id = eq.id
+    LEFT JOIN general.parameter as p ON m.parameter_id = p.id
+    LEFT JOIN general.units as u ON p.unit_id = u.id
+    LEFT JOIN basic.feed_complex as fc ON m.feed_complex_id = fc.id
+    LEFT JOIN general.material as ma ON fc.material_id = ma.id
+    LEFT JOIN basic.production_complex pc ON m.production_complex_id = pc.id
+    LEFT JOIN general.material as mat ON pc.material_id = mat.id
+    LEFT JOIN (
+        SELECT DISTINCT ON (complex_id)
+            complex_id,
+            license_id
+        FROM basic.complex_license
+    ) as cl ON c.id = cl.complex_id
+    LEFT JOIN general.license as l ON cl.license_id = l.id
+    WHERE 1=1
+    """
 
 
-        from operation.measurement as m 
+    params = {}
+    if complex_id is not None:
+        final_query += " AND c.id = :complex_id"
+        params["complex_id"] = complex_id
+    if material_id is not None:
+        final_query += " AND ma.id = :material_id"
+        params["material_id"] = material_id
 
-        left join basic.complex as c on m.complex_id = c.id
-        left join general.equipment as eq on m.equipment_id = eq.id
-        left join general.parameter as p on m.parameter_id = p.id
-        left join general.units as u on p.unit_id = u.id
-        left join basic.feed_complex as fc on m.feed_complex_id = fc.id
-        left join general.material as ma on fc.material_id = ma.id
-        left join basic.production_complex pc on m.production_complex_id = pc.id
-        left join general.material as mat on pc.material_id = mat.id
+    final_query += " ORDER BY m.id"
 
-        left join (select distinct on (complex_id)
-        complex_id,
-        license_id
-        from basic.complex_license
-        ) as cl on c.id = cl.complex_id
 
-        left join general.license as l on cl.license_id = l.id
-
-        order by m.id;
-
-        """
-        conditions = []
-        params = {}
-
-        if complex_id is not None:
-            conditions.append("AND c.id = :complex_id")
-            params["complex_id"] = complex_id
-
-        if material_id is not None:
-            conditions.append("AND ma.id = :material_id")
-            params["material_id"] = material_id
-
-        final_query = query + "\n".join(conditions) + "\nORDER BY m.id;"
+    with engine.begin() as conn:
         df = pd.read_sql(text(final_query), conn, params=params)
 
     return df
-  
