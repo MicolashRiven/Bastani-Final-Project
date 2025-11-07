@@ -3,6 +3,7 @@ from fastapi import APIRouter, Query, Depends
 from core.auth import get_current_user, require_roles
 from service.returnrawdata import getrawdataJson
 from service.returnrawsensordata import getrawsensordataJson
+from service.analytics.analytic_demo import calculate_methanol_kpi
 
 
 router = APIRouter()
@@ -27,6 +28,9 @@ async def testrouter(complex: int = Query(None)):
     return getrawsensordataJson (complex_id=complex) 
 
 
+@router.get("/analytic")
+async def analyricRouter():
+    return calculate_methanol_kpi()
 
 @router.get("/me")
 async def who_am_i(payload: dict = Depends(get_current_user)):

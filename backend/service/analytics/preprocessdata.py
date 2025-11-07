@@ -1,6 +1,7 @@
+# service/analytics/preprocessdata.py
+
 import pandas as pd
 from database.pcdb.rawdata import getAllComplexesList
-
 
 O2_SCM_TO_TON = 1 / 1429.0
 CH4_SCM_TO_TON = 0.000716
@@ -8,10 +9,7 @@ CH4_SCM_TO_TON = 0.000716
 def get_methanol_kpi_dataframe():
 
     df = getAllComplexesList()
-
-
     df = df[df["product_material_name"] == "Methanol"].copy()
-
 
     df = df[[
         "measurement_date",
@@ -21,9 +19,7 @@ def get_methanol_kpi_dataframe():
         "product_material_name"
     ]]
 
-
     df = df.sort_values("measurement_date").reset_index(drop=True)
-
 
     grouped_rows = []
     for i in range(0, len(df), 4):
@@ -32,7 +28,6 @@ def get_methanol_kpi_dataframe():
             continue
 
         date = subset["measurement_date"].iloc[0]
-
 
         values = {
             "date": date,
@@ -59,7 +54,10 @@ def get_methanol_kpi_dataframe():
 
     result_df = pd.DataFrame(grouped_rows)
 
+
     result_df["feed_consumed_ng_ton"] = result_df["feed_consumed_ng"].astype(float) * CH4_SCM_TO_TON
     result_df["feed_consumed_o2_ton"] = result_df["feed_consumed_o2"].astype(float) * O2_SCM_TO_TON
+    result_df["feed_fuel_ton"] = result_df["feed_fuel"].astype(float) * CH4_SCM_TO_TON
+    result_df["product_output_ton"] = result_df["product_output"].astype(float)
 
     return result_df

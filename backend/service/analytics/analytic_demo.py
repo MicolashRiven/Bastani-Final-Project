@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-from preprocessdata import get_methanol_kpi_dataframe
+import json
+from .preprocessdata import get_methanol_kpi_dataframe
 
 
 ENERGY_INTENSITY_MIN = 1.36
@@ -11,31 +12,33 @@ M_CH4 = 16.04
 M_O2 = 32.00
 M_MEOH = 32.04
 
-
 def calculate_methanol_kpi() -> pd.DataFrame:
-   
     df = get_methanol_kpi_dataframe()
-
-
     df = df.copy()
+
+
     df["feed_ng"] = df["feed_consumed_ng_ton"].fillna(0)
     df["feed_o2"] = df["feed_consumed_o2_ton"].fillna(0)
-    df["fuel"]    = df["feed_fuel_ton"].fillna(0)
+    df["fuel"] = df["feed_fuel_ton"].fillna(0)
     df["product"] = df["product_output_ton"].fillna(0)
 
-
+    df["date"] = pd.to_datetime(df["date"])
     date_range = pd.date_range(start=df["date"].min(), end=df["date"].max(), freq="D")
     full_df = pd.DataFrame({"date": date_range})
-    full_df = full_df.merge(df[["date", "feed_ng", "feed_o2", "fuel", "product"]], on="date", how="left")
+    full_df["date"] = pd.to_datetime(full_df["date"])
+
+    full_df = full_df.merge(
+        df[["date", "feed_ng", "feed_o2", "fuel", "product"]],
+        on="date",
+        how="left"
+    )
     full_df.fillna({"feed_ng": 0, "feed_o2": 0, "fuel": 0, "product": 0}, inplace=True)
 
 
     f_total = full_df["feed_ng"] + full_df["feed_o2"]
     p_total = full_df["product"]
 
-
     yld = np.where(f_total == 0, 0.0, np.where(p_total == 0, 0.0, p_total / f_total))
-
 
     flag = np.select(
         [
@@ -55,12 +58,16 @@ def calculate_methanol_kpi() -> pd.DataFrame:
         default="OK"
     )
 
-
     ratio_ch4 = np.where(p_total == 0, None, full_df["feed_ng"] / p_total)
     ratio_o2  = np.where(p_total == 0, None, full_df["feed_o2"] / p_total)
-    energy_int = np.where(p_total == 0, None, (full_df["fuel"] * 50000) / (p_total * 1000))
-    energy_flag = np.where(energy_int < ENERGY_INTENSITY_MIN, "LOW",
-                           np.where(energy_int > ENERGY_INTENSITY_MAX, "HIGH", "OK"))
+
+
+    energy_int = np.where(p_total == 0, np.nan, (full_df["fuel"] * 50000) / (p_total * 1000))
+    energy_flag = np.where(
+        pd.isna(energy_int), "No Data",
+        np.where(energy_int < ENERGY_INTENSITY_MIN, "LOW",
+                 np.where(energy_int > ENERGY_INTENSITY_MAX, "HIGH", "OK"))
+    )
 
     n_ch4 = full_df["feed_ng"] / M_CH4
     n_o2  = full_df["feed_o2"] / M_O2
@@ -81,7 +88,7 @@ def calculate_methanol_kpi() -> pd.DataFrame:
         "Flag Methanol": flag.tolist(),
         "Ratio CH4 Methanol": [round(x, 3) if x is not None else None for x in ratio_ch4],
         "Ratio O2 Methanol": [round(x, 3) if x is not None else None for x in ratio_o2],
-        "Energy Intensity Methanol": [round(x, 2) if x is not None else None for x in energy_int],
+        "Energy Intensity Methanol": [round(x, 2) if not pd.isna(x) else None for x in energy_int],
         "Energy Flag Methanol": energy_flag.tolist(),
         "Limiting Reagent Methanol": limiting.tolist(),
         "Theoretical Prod Ton Methanol": [round(x, 1) if x > 0 else None for x in theoretical],
@@ -91,4 +98,4 @@ def calculate_methanol_kpi() -> pd.DataFrame:
         "Reagent Flag Methanol": np.where(n_excess > 0, "Excess", "Deficient").tolist(),
     })
 
-    return result
+    return json.loads(result.to_json(orient="records"))
