@@ -18,7 +18,7 @@ async def testrouter_test(complex: int = Query(None), material: int = Query(None
 async def testrouter_measurement():
     return getrawdataJson()
 
-
+  
 @router.get("/sensor")
 async def testrouter():
     return getrawsensordataJson () 

@@ -75,3 +75,4 @@ def getAllComplexesList(complex_id=None, material_id=None):
         df = pd.read_sql(text(final_query), conn, params=params)
 
     return df
+  
