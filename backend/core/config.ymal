@@ -1,0 +1,81 @@
+unit_conversions:
+  mmscm_to_ton:
+    O2: 1429.0
+
+  scm_to_ton:
+    CH4: 0.000716
+
+  nm3_to_ton:
+    N2: 0.001251
+    H2: 0.0000899
+    NH3: 0.000771
+
+licenses:
+  - name: "Lurgi MegaMethanol"
+    company: "Air Liquide Engineering & Construction"
+    description: "High-capacity methanol production technology based on Lurgi's syngas process, offering optimized energy efficiency, reduced CO2 emissions, and reliable large-scale operation."
+    constants:
+      temperature_range: [230, 300]
+      pressure_range: [40, 100]
+      energy_intensity_range: [1.36, 4.29]
+      yield_normal_range: [0.76, 0.88]
+      yield_suspicious_range: [0.70, 0.94]
+      ratios_range:
+        CH4: [0.5, 0.65]
+        O2: [0.5, 0.6]
+      molecular_weights:
+        CH4:
+          value: 16.04
+          default_unit: "scm"
+        O2:
+          value: 32.00
+          default_unit: "mmscm"
+        CH3OH:
+          value: 32.04
+          default_unit: "ton"
+
+  - name: "Topsoe Methanol Process"
+    company: "Topsoe"
+    description: "Advanced methanol synthesis process utilizing Topsoe's proprietary catalysts and reactor design to achieve high conversion efficiency, low pressure drop, and stable long-term performance."
+    constants:
+      temperature_range: [230, 300]
+      pressure_range: [40, 100]
+      energy_intensity_range: [1.40, 4.10]
+      yield_normal_range: [0.80, 0.90]
+      yield_suspicious_range: [0.75, 0.95]
+      ratios_range:
+        CH4: [0.48, 0.66]
+        O2: [0.5, 0.62]
+      molecular_weights:
+        CH4:
+          value: 16.04
+          default_unit: "scm"
+        O2:
+          value: 32.00
+          default_unit: "mmscm"
+        CH3OH:
+          value: 32.04
+          default_unit: "ton"
+
+  - name: "Topsoe Ammonia Process"
+    company: "Topsoe"
+    description: "State-of-the-art ammonia synthesis technology combining efficient hydrogen-nitrogen conversion with optimized heat recovery and Topsoe's high-activity catalysts for superior yield and energy savings."
+    constants:
+      temperature_range: [400, 500]
+      pressure_range: [200, 300]
+      energy_intensity_range: [1.20, 3.60]
+      yield_normal_range: [0.96, 0.975]
+      yield_suspicious_range: [0.95, 0.98]
+      ratios_range:
+        H2: [0.55, 0.68]
+        N2: [0.45, 0.55]
+      molecular_weights:
+        NH3:
+          value: 17.03
+          default_unit: "Nm3"
+        N2:
+          value: 28.01
+          default_unit: "Nm3"
+        H2:
+          value: 2.016
+          default_unit: "Nm3"
