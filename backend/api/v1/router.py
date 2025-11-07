@@ -4,6 +4,7 @@ from core.auth import get_current_user, require_roles
 from service.returnrawdata import getrawdataJson
 from service.returnrawsensordata import getrawsensordataJson
 from service.analytics.analytic_demo import calculate_methanol_kpi
+from service.analytics.biogenAiOptimizer.biogen_feed_optimizer import get_biogen_optimized_feeds_dataframe
 
 
 router = APIRouter()
@@ -32,6 +33,12 @@ async def testrouter( complex: int = Query(None), payload: dict = Depends(get_cu
 @router.get("/analytic")
 async def analyricRouter(payload: dict = Depends(get_current_user)):
     return calculate_methanol_kpi()
+
+# EX-> call like this: http://127.0.0.1:8000/alert
+@router.get("/aioptimizer")
+async def alertRouter():
+    return get_biogen_optimized_feeds_dataframe()
+
 
 # EX-> call like this: http://127.0.0.1:8000/alert
 @router.get("/alert")

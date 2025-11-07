@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import { Box, Typography, CircularProgress, Button } from "@mui/material";
 import { ResponsiveLine } from "@nivo/line";
+import { DataGrid } from "@mui/x-data-grid";
 import keycloak from "../../keycloak";
 
 const COLOR_PALETTE = [
@@ -13,7 +14,8 @@ const COLOR_PALETTE = [
 
 const Analytics = () => {
   const [analyticData, setAnalyticData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingAnalytic, setLoadingAnalytic] = useState(false);
+  const [showAlertTable, setShowAlertTable] = useState(false);
 
   const colorMapRef = useRef({});
   const colorIndexRef = useRef(0);
@@ -28,20 +30,22 @@ const Analytics = () => {
 
   useEffect(() => {
     const fetchAnalytic = async () => {
-      setLoading(true);
+      setLoadingAnalytic(true);
       try {
-        const res = await fetch("http://127.0.0.1:8000/analytic", {
+        const res = await fetch("http://127.0.0.1:8000/alert", {
           headers: { Authorization: `Bearer ${keycloak.token}` },
         });
         if (!res.ok) throw new Error("Failed to fetch analytic data");
         const data = await res.json();
-        console.log("Analytic API data:", data); // <--- بررسی داده‌ها
-        setAnalyticData(Array.isArray(data) ? data : []);
+        const dataWithId = Array.isArray(data)
+          ? data.map((item, index) => ({ id: index, ...item }))
+          : [];
+        setAnalyticData(dataWithId);
       } catch (err) {
-        console.error("Error fetching analytic data:", err);
+        console.error(err);
         setAnalyticData([]);
       } finally {
-        setLoading(false);
+        setLoadingAnalytic(false);
       }
     };
     fetchAnalytic();
@@ -49,28 +53,22 @@ const Analytics = () => {
 
   const makeChartData = (data, yField, label) => {
     if (!Array.isArray(data)) return [];
-
     const seriesData = data
-      .filter((d) => d[yField] != null && d["Date"]) 
-      .map((d) => {
-        const xValue = new Date(d["Date"] + "T00:00:00"); 
-        return { x: xValue, y: parseFloat(d[yField]) || 0 };
-      })
+      .filter((d) => d[yField] != null && d["date"])
+      .map((d) => ({ x: new Date(d["date"] + "T00:00:00"), y: parseFloat(d[yField]) || 0 }))
       .sort((a, b) => a.x - b.x);
-
     if (!seriesData.length) return [];
     return [{ id: label, data: seriesData, color: getColorForKey(label) }];
   };
 
   const ChartBox = ({ title, yField, yLegend }) => {
     const chartData = makeChartData(analyticData, yField, title);
-
     return (
       <Box height="100%" width="100%" display="flex" flexDirection="column">
         <Typography variant="h4" color="white" align="center" mb={1}>
           {title}
         </Typography>
-        {loading ? (
+        {loadingAnalytic ? (
           <Box display="flex" justifyContent="center" alignItems="center" flex={1}>
             <CircularProgress color="primary" />
           </Box>
@@ -124,14 +122,57 @@ const Analytics = () => {
     );
   };
 
+  const columns = analyticData.length
+    ? Object.keys(analyticData[0]).filter(k => k !== "id").map((key) => ({
+        field: key,
+        headerName: key.replace(/_/g, " ").toUpperCase(),
+        flex: 1,
+        minWidth: 120,
+      }))
+    : [];
+
   return (
-    <Box display="grid" gridTemplateColumns="repeat(2,1fr)" gridTemplateRows="1fr" gap={2} height="90vh" sx={{ bgcolor: "rgba(22,22,24,0.7)", p: 1 }}>
-      <Box bgcolor="rgba(255,255,255,0.05)" sx={{ borderRadius: 2, p: 1 }}>
-        <ChartBox title="Energy Intensity" yField="Energy Intensity Methanol" yLegend="Energy Intensity" />
-      </Box>
-      <Box bgcolor="rgba(255,255,255,0.05)" sx={{ borderRadius: 2, p: 1 }}>
-        <ChartBox title="Theoretical Prod Ton" yField="Theoretical Prod Ton Methanol" yLegend="Ton" />
-      </Box>
+    <Box height="90vh" display="flex" flexDirection="column" gap={1} sx={{ bgcolor: "rgba(22,22,24,0.7)", p: 1 }}>
+      <Button variant="contained" color="primary" onClick={() => setShowAlertTable((prev) => !prev)} sx={{ alignSelf: "flex-start" }}>
+        {showAlertTable ? "Hide Table" : "Show Table"}
+      </Button>
+
+      {showAlertTable ? (
+        <Box flex={1} sx={{ overflowY: "auto" }}>
+          {loadingAnalytic ? (
+            <Box display="flex" justifyContent="center" alignItems="center" flex={1}>
+              <CircularProgress color="primary" />
+            </Box>
+          ) : (
+            <DataGrid
+              rows={analyticData}
+              columns={columns}
+              pageSize={10}
+              rowsPerPageOptions={[10, 25, 50]}
+              autoHeight={false}
+              disableExtendRowFullWidth={true}
+              sx={{
+                minHeight: "100%", // جدول خودش scroll بگیره
+                bgcolor: "rgba(255,255,255,0.05)",
+                borderRadius: 2,
+                ".MuiDataGrid-cell": { color: "#fff" },
+                ".MuiDataGrid-columnHeaders": { backgroundColor: "rgba(255,255,255,0.1)", color: "#fff" },
+                ".MuiDataGrid-footerContainer": { backgroundColor: "rgba(255,255,255,0.1)", color: "#fff" },
+                ".MuiDataGrid-row:hover": { backgroundColor: "rgba(255,255,255,0.08)" },
+              }}
+            />
+          )}
+        </Box>
+      ) : (
+        <Box display="grid" gridTemplateColumns="repeat(2,1fr)" gridTemplateRows="1fr" gap={2} flex={1}>
+          <Box bgcolor="rgba(255,255,255,0.05)" sx={{ borderRadius: 2, p: 1 }}>
+            <ChartBox title="Energy Intensity" yField="Energy Intensity Methanol" yLegend="Energy Intensity" />
+          </Box>
+          <Box bgcolor="rgba(255,255,255,0.05)" sx={{ borderRadius: 2, p: 1 }}>
+            <ChartBox title="Theoretical Prod Ton" yField="Theoretical Prod Ton Methanol" yLegend="Ton" />
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };
