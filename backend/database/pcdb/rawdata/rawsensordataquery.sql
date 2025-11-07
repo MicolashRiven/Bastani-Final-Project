@@ -14,7 +14,10 @@ su.name as sensor_unit_name,
 sd.value as sensor_value,
 sd.status as sensor_status,
 l.id as license_id,
-l.name as license_name
+l.name as license_name,
+
+coalesce(fc.line_number, pc.line_number) as line_number
+
 
 from operation.sensor_data sd
 left join basic.complex c on sd.complex_id = c.id
@@ -32,6 +35,24 @@ from basic.complex_license
 
 left join general.license as l on cl.license_id = l.id
 
-order by sd.id;
+left join (select distinct on (complex_id)
+id,
+complex_id,
+line_number
+from basic.feed_complex
+order by complex_id
+) as fc 
+on sd.complex_id = fc.complex_id
 
+left join (
+select distinct on (complex_id)
+id,
+complex_id,
+line_number
+from basic.production_complex
+order by complex_id
+) as pc 
+on sd.complex_id = pc.complex_id
+
+order by sd.id;
 
