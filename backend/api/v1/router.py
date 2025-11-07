@@ -2,15 +2,21 @@ from fastapi import APIRouter, Depends
 
 from core.auth import get_current_user, require_roles
 from service.returnrawdata import getrawdataJson
+from service.returnrawsensordata import getrawsensordataJson
+
 
 router = APIRouter()
 
 def getrouter():
     return router
 
-@router.get("/test")
+@router.get("/measurement")
 async def testrouter():
     return  getrawdataJson() 
+
+@router.get("/sensor")
+async def testrouter():
+    return getrawsensordataJson () 
 
 
 
