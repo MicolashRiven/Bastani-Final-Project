@@ -8,6 +8,8 @@ import { Box } from "@mui/material";
 import { ColorModeContext, useMode} from "./theme";
 import Topbar from "./scenes/global/Topbar";
 import Dashboard from "./scenes/dashboard";
+import Analytics from "./scenes/analytics";
+import Alert from "./scenes/alert";
 
 import DarkVeil from "./components/reactbits/DarkVeil/DarkVeil";
 
@@ -45,7 +47,9 @@ function App() {
             <Topbar setIsSidebar={setIsSidebar} />
 
             <Routes>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="" element={<Dashboard />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/alert" element={<Alert />} />
             </Routes>
           </main>
         </div> 

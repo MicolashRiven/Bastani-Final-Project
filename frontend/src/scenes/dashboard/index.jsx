@@ -503,7 +503,7 @@ const Dashboard = () => {
   // initial selection screen
   if (!selectedMaterial) {
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh" sx={{ bgcolor: "rgba(22,22,24,0.7)" }}>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="90vh" sx={{ bgcolor: "rgba(22,22,24,0.7)" }}>
         {initialData.map((complex) => (
           <Box key={complex.id} mb={3}>
             <Typography variant="h4" color="white" mb={1}>
@@ -534,7 +534,7 @@ const Dashboard = () => {
 
   // dashboard with 5 boxes (index 0..4). box 5 removed per request.
   return (
-    <Box display="grid" gridTemplateColumns="repeat(3,1fr)" gridTemplateRows="repeat(2,1fr)" gap={2} height="100vh" sx={{ bgcolor: "rgba(22,22,24,0.7)", p: 1 }}>
+    <Box display="grid" gridTemplateColumns="repeat(3,1fr)" gridTemplateRows="repeat(2,1fr)" gap={2} height="90vh" sx={{ bgcolor: "rgba(22,22,24,0.7)", p: 1 }}>
       {[...Array(5)].map((_, index) => (
         <Box key={index} bgcolor="rgba(255,255,255,0.05)" display="flex" flexDirection="column" justifyContent="flex-start" alignItems="center" sx={{ borderRadius: 2, position: "relative", p: 1 }}>
           {index === 0 && (
