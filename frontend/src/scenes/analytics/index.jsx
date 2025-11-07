@@ -51,10 +51,9 @@ const Analytics = () => {
     if (!Array.isArray(data)) return [];
 
     const seriesData = data
-      .filter((d) => d[yField] != null && d["Date"]) // فقط رکوردهایی که yField و Date دارند
+      .filter((d) => d[yField] != null && d["Date"]) 
       .map((d) => {
-        // تبدیل string تاریخ به Date
-        const xValue = new Date(d["Date"] + "T00:00:00"); // اضافه کردن T00:00:00 برای جلوگیری از timezone issues
+        const xValue = new Date(d["Date"] + "T00:00:00"); 
         return { x: xValue, y: parseFloat(d[yField]) || 0 };
       })
       .sort((a, b) => a.x - b.x);
