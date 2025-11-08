@@ -1,0 +1,4 @@
+﻿Target (ton),O2 (ton),NG (ton),Predicted Production,NG/MeOH Ratio,Overall Yield,Success
+2630,1491.6,1652.1,2630.0,0.628,0.837,True
+3000,1690.1,1739.4,3000.0,0.58,0.875,True
+3500,1967.3,2182.2,3500.0,0.623,0.843,True
