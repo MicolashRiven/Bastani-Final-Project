@@ -58,14 +58,3 @@ async def who_am_i(payload: dict = Depends(get_current_user)):
 async def admin_only(payload: dict = Depends(require_roles(["admin"]))):
     return {"msg": "admin", "user": payload.get("preferred_username")}
 
-
-
-# EX-> call like this: http://127.0.0.1:8000/test_kpi
-@router.get("/test_kpi")
-async def test_kpi():
-    from service.analytics.preprocessdata import get_methanol_kpi_dataframe
-
-    df = get_methanol_kpi_dataframe()
-
-    # تبدیل به JSON (records = هر ردیف به دیکشنری)
-    return df.to_dict(orient="records")
