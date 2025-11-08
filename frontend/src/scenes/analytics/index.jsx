@@ -13,12 +13,15 @@ const COLOR_PALETTE = [
 ];
 
 const Analytics = () => {
-  const [analyticData, setAnalyticData] = useState([]);
-  const [loadingAnalytic, setLoadingAnalytic] = useState(false);
-  const [showAlertTable, setShowAlertTable] = useState(false);
+  const [chartDataRaw, setChartDataRaw] = useState([]);
+  const [tableData, setTableData] = useState([]);
+  const [loadingCharts, setLoadingCharts] = useState(false);
+  const [loadingTable, setLoadingTable] = useState(false);
+  const [showTable, setShowTable] = useState(false);
 
   const colorMapRef = useRef({});
   const colorIndexRef = useRef(0);
+
   const getColorForKey = (key) => {
     if (!key) return COLOR_PALETTE[0];
     if (colorMapRef.current[key]) return colorMapRef.current[key];
@@ -28,47 +31,75 @@ const Analytics = () => {
     return color;
   };
 
+  // ------------------ Fetch Charts ------------------
   useEffect(() => {
-    const fetchAnalytic = async () => {
-      setLoadingAnalytic(true);
+    const fetchCharts = async () => {
+      setLoadingCharts(true);
       try {
-        const res = await fetch("http://127.0.0.1:8000/alert", {
+        const res = await fetch("http://127.0.0.1:8000/analytic", {
           headers: { Authorization: `Bearer ${keycloak.token}` },
         });
-        if (!res.ok) throw new Error("Failed to fetch analytic data");
+        if (!res.ok) throw new Error("Failed to fetch analytic chart data");
+        const data = await res.json();
+        setChartDataRaw(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setChartDataRaw([]);
+      } finally {
+        setLoadingCharts(false);
+      }
+    };
+    fetchCharts();
+  }, []);
+
+  // ------------------ Fetch Table ------------------
+  useEffect(() => {
+    const fetchTable = async () => {
+      setLoadingTable(true);
+      try {
+        const res = await fetch("http://127.0.0.1:8000/aioptimizer", {
+          headers: { Authorization: `Bearer ${keycloak.token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch table data");
         const data = await res.json();
         const dataWithId = Array.isArray(data)
           ? data.map((item, index) => ({ id: index, ...item }))
           : [];
-        setAnalyticData(dataWithId);
+        setTableData(dataWithId);
       } catch (err) {
         console.error(err);
-        setAnalyticData([]);
+        setTableData([]);
       } finally {
-        setLoadingAnalytic(false);
+        setLoadingTable(false);
       }
     };
-    fetchAnalytic();
+    fetchTable();
   }, []);
 
+  // ------------------ Make Chart Data ------------------
   const makeChartData = (data, yField, label) => {
     if (!Array.isArray(data)) return [];
     const seriesData = data
-      .filter((d) => d[yField] != null && d["date"])
-      .map((d) => ({ x: new Date(d["date"] + "T00:00:00"), y: parseFloat(d[yField]) || 0 }))
+      .filter((d) => d[yField] != null && d[yField] !== "Null" && d["Date"])
+      .map((d) => ({
+        x: new Date(d["Date"] + "T00:00:00"),
+        y: parseFloat(d[yField]) || 0,
+      }))
       .sort((a, b) => a.x - b.x);
+
     if (!seriesData.length) return [];
     return [{ id: label, data: seriesData, color: getColorForKey(label) }];
   };
 
   const ChartBox = ({ title, yField, yLegend }) => {
-    const chartData = makeChartData(analyticData, yField, title);
+    const chartData = makeChartData(chartDataRaw, yField, title);
+
     return (
       <Box height="100%" width="100%" display="flex" flexDirection="column">
         <Typography variant="h4" color="white" align="center" mb={1}>
           {title}
         </Typography>
-        {loadingAnalytic ? (
+        {loadingCharts ? (
           <Box display="flex" justifyContent="center" alignItems="center" flex={1}>
             <CircularProgress color="primary" />
           </Box>
@@ -122,37 +153,44 @@ const Analytics = () => {
     );
   };
 
-  const columns = analyticData.length
-    ? Object.keys(analyticData[0]).filter(k => k !== "id").map((key) => ({
-        field: key,
-        headerName: key.replace(/_/g, " ").toUpperCase(),
-        flex: 1,
-        minWidth: 120,
-      }))
+  const tableColumns = tableData.length
+    ? Object.keys(tableData[0])
+        .filter((k) => k !== "id")
+        .map((key) => ({
+          field: key,
+          headerName: key.replace(/_/g, " ").toUpperCase(),
+          flex: 1,
+          minWidth: 120,
+        }))
     : [];
 
   return (
     <Box height="90vh" display="flex" flexDirection="column" gap={1} sx={{ bgcolor: "rgba(22,22,24,0.7)", p: 1 }}>
-      <Button variant="contained" color="primary" onClick={() => setShowAlertTable((prev) => !prev)} sx={{ alignSelf: "flex-start" }}>
-        {showAlertTable ? "Hide Table" : "Show Table"}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setShowTable((prev) => !prev)}
+        sx={{ alignSelf: "flex-start" }}
+      >
+        {showTable ? "Hide Table" : "Show Table"}
       </Button>
 
-      {showAlertTable ? (
+      {showTable ? (
         <Box flex={1} sx={{ overflowY: "auto" }}>
-          {loadingAnalytic ? (
+          {loadingTable ? (
             <Box display="flex" justifyContent="center" alignItems="center" flex={1}>
               <CircularProgress color="primary" />
             </Box>
           ) : (
             <DataGrid
-              rows={analyticData}
-              columns={columns}
+              rows={tableData}
+              columns={tableColumns}
               pageSize={10}
               rowsPerPageOptions={[10, 25, 50]}
               autoHeight={false}
               disableExtendRowFullWidth={true}
               sx={{
-                minHeight: "100%", // جدول خودش scroll بگیره
+                minHeight: "100%",
                 bgcolor: "rgba(255,255,255,0.05)",
                 borderRadius: 2,
                 ".MuiDataGrid-cell": { color: "#fff" },
@@ -164,7 +202,7 @@ const Analytics = () => {
           )}
         </Box>
       ) : (
-        <Box display="grid" gridTemplateColumns="repeat(2,1fr)" gridTemplateRows="1fr" gap={2} flex={1}>
+        <Box display="grid" gridTemplateColumns="repeat(2,1fr)" gap={2} flex={1}>
           <Box bgcolor="rgba(255,255,255,0.05)" sx={{ borderRadius: 2, p: 1 }}>
             <ChartBox title="Energy Intensity" yField="Energy Intensity Methanol" yLegend="Energy Intensity" />
           </Box>

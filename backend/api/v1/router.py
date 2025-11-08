@@ -31,7 +31,7 @@ async def testrouter( complex: int = Query(None), payload: dict = Depends(get_cu
 
 # EX-> call like this: http://127.0.0.1:8000/analytic
 @router.get("/analytic")
-async def analyricRouter(payload: dict = Depends(get_current_user)):
+async def analyricRouter(): #payload: dict = Depends(get_current_user)
     return calculate_methanol_kpi()
 
 # EX-> call like this: http://127.0.0.1:8000/alert
