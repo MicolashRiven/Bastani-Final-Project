@@ -101,5 +101,6 @@ The platform is designed to support additional capabilities in future versions:
 
 **Amirmahdi Bastani**  
 Mathematics & Computer Science Student 
-[Email](mailto:a@sharif.edu) [Email](mailto:amir.bastani1383@gmail.com)
+[Email](mailto:amir.bastani1383@gmail.com) 
+[Email](mailto:a@sharif.edu) 
 
